@@ -33,9 +33,21 @@
     <p id="score"></p>
 
     <script>
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        console.log("🚀 Script Loaded!");
+
+        // Check if Speech Recognition is supported
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            console.error("🚨 Speech Recognition API not supported in this browser!");
+            alert("Speech Recognition is not supported in this browser. Please use Google Chrome.");
+        } else {
+            console.log("✅ Speech Recognition API is supported!");
+        }
+
+        const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
+        recognition.lang = "en-US"; // Default language
 
         let correctWordCount = 0;
         let totalWordCount = 0;
@@ -76,8 +88,15 @@
         const stopBtn = document.getElementById("stop-btn");
 
         languageSelect.addEventListener("change", (event) => {
-            const selectedLang = event.target.value;
+            let selectedLang = event.target.value;
             recognition.lang = selectedLang;
+
+            console.log(`🌍 Language changed to: ${selectedLang}`);
+            console.log("📜 Available Languages:", Object.keys(lyricsData));
+
+            if (!lyricsData[selectedLang]) {
+                console.error("🚨 Selected language not found in lyricsData:", selectedLang);
+            }
 
             // Reset score when changing languages
             correctWordCount = 0;
@@ -87,12 +106,20 @@
         });
 
         startBtn.addEventListener("click", () => {
+            console.log("🎤 Attempting to start speech recognition...");
+            
+            let selectedLang = languageSelect.value;
+            recognition.lang = selectedLang;
+            console.log("🌍 Forced recognition.lang to:", selectedLang);
+
             recognition.start();
+            console.log("🎤 Speech recognition started!");
             startBtn.disabled = true;
             stopBtn.disabled = false;
         });
 
         stopBtn.addEventListener("click", () => {
+            console.log("🛑 Stopping Speech Recognition...");
             recognition.stop();
             stopBtn.disabled = true;
             startBtn.disabled = false;
@@ -100,18 +127,41 @@
         });
 
         recognition.onresult = (event) => {
+            console.log("🎤 Speech detected!");
             const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+            console.log("🎤 Recognized Speech:", transcript);
+
+            if (!transcript) {
+                console.warn("⚠️ No speech detected.");
+                return;
+            }
+
             highlightWords(transcript);
         };
 
+        recognition.onerror = (event) => {
+            console.error("🚨 Speech Recognition Error:", event.error);
+        };
+
+        recognition.onend = () => {
+            console.warn("⚠️ Speech Recognition Stopped. Restarting...");
+            recognition.start();
+        };
+
         function highlightWords(userInput) {
-            const selectedLang = recognition.lang;
+            let selectedLang = recognition.lang;
+
+            if (!lyricsData[selectedLang]) {
+                console.warn("⚠️ Selected language not found. Defaulting to English.");
+                selectedLang = "en-US";
+            }
+
             let expectedLyrics = lyricsData[selectedLang]
-                .map(line => line.text.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, "")) // Remove punctuation
+                .map(line => line.text.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, ""))
                 .join(" ");
 
             const expectedWords = expectedLyrics.split(" ");
-            const userWords = userInput.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, "").split(" "); // Remove punctuation
+            const userWords = userInput.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, "").split(" ");
 
             correctWordCount = 0;
             totalWordCount = expectedWords.length;
@@ -139,3 +189,7 @@
     </script>
 </body>
 </html>
+
+
+
+
