@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import './App.css';
 
+// Songs data
 const songs = {
   french: {
     title: "La Vie en Rose",
@@ -64,43 +66,32 @@ Kyaa karun haaye.. kuch kuch hotha hai..`
 function App() {
   const [selectedSong, setSelectedSong] = useState(null);
 
-  const handleSongSelect = (song) => {
-    setSelectedSong(song);
+  // Function to handle song selection
+  const handleSongSelection = (language) => {
+    setSelectedSong(songs[language]);
   };
 
   return (
-    <div>
-      {/* Home Page */}
-      <h1>Welcome to the Language Learning App!</h1>
-      <p>Select a song and start singing along to practice your language skills!</p>
+    <div className="App">
+      <h1>Welcome to Karaoke Language App</h1>
 
-      {/* Song Selection Page */}
-      <div>
-        <h2>Choose a Song to Sing</h2>
-        <ul>
-          <li onClick={() => handleSongSelect('french')}>French Song: La Vie en Rose</li>
-          <li onClick={() => handleSongSelect('english')}>English Song: Waka Waka</li>
-          <li onClick={() => handleSongSelect('chinese')}>Chinese Song: 茉莉花 (Jasmine Flower)</li>
-          <li onClick={() => handleSongSelect('spanish')}>Spanish Song: Despacito</li>
-          <li onClick={() => handleSongSelect('hindi')}>Hindi Song: Kuch Kuch Hota Hai</li>
-        </ul>
+      <div className="song-selection">
+        <h2>Select a song to sing:</h2>
+        <div className="buttons">
+          <button onClick={() => handleSongSelection("french")}>La Vie en Rose (French)</button>
+          <button onClick={() => handleSongSelection("english")}>Waka Waka (English)</button>
+          <button onClick={() => handleSongSelection("chinese")}>Jasmine Flower (Chinese)</button>
+          <button onClick={() => handleSongSelection("spanish")}>Despacito (Spanish)</button>
+          <button onClick={() => handleSongSelection("hindi")}>Kuch Kuch Hota Hai (Hindi)</button>
+        </div>
       </div>
 
-      {/* Sing Along Page */}
       {selectedSong && (
-        <div>
-          <h2>{songs[selectedSong].title}</h2>
-          <p>{songs[selectedSong].lyrics}</p>
-          <p>Start singing the lyrics above and practice your pronunciation!</p>
-          <textarea placeholder="Record your singing here..." rows="5" cols="50"></textarea>
+        <div className="song-lyrics">
+          <h2>{selectedSong.title}</h2>
+          <pre>{selectedSong.lyrics}</pre>
         </div>
       )}
-
-      {/* Feedback Page */}
-      <div>
-        <h2>Your Pronunciation Feedback</h2>
-        <p>We will provide feedback on the words you missed or pronounced incorrectly.</p>
-      </div>
     </div>
   );
 }
