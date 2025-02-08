@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Recognition Test</title>
+    <style>
+        .correct { color: green; font-weight: bold; }
+        .incorrect { color: red; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h2>Sing Along Test (Speech Recognition Only)</h2>
+
+    <label for="language-select">Choose Language:</label>
+    <select id="language-select">
+        <option value="en-US">English</option>
+        <option value="es-ES">Spanish</option>
+        <option value="fr-FR">French</option>
+        <option value="zh-CN">Chinese (Pinyin)</option>
+        <option value="hi-IN">Hindi (Romanized)</option>
+    </select>
+
+    <button id="start-btn">🎤 Start Singing</button>
+    <button id="stop-btn" disabled>🛑 Stop</button>
+
+    <div id="lyrics-container">
+        <h3>Lyrics:</h3>
+        <p id="lyrics"></p>
+    </div>
+
+    <h3 id="score-title" style="display: none;">Final Score:</h3>
+    <p id="score"></p>
+
+    <script>
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        let correctWordCount = 0;
+        let totalWordCount = 0;
+
+        const lyricsData = {
+            "en-US": [
+                { text: "Hello it's me" },
+                { text: "I was wondering if after all these years" },
+                { text: "You'd like to meet" }
+            ],
+            "es-ES": [
+                { text: "Hola soy yo" },
+                { text: "Me preguntaba si después de tantos años" },
+                { text: "Te gustaría verme" }
+            ],
+            "fr-FR": [
+                { text: "Bonjour c'est moi" },
+                { text: "Je me demandais si après toutes ces années" },
+                { text: "Tu voudrais me voir" }
+            ],
+            "zh-CN": [
+                { text: "Nǐ hǎo shì wǒ" },
+                { text: "Wǒ xiǎng zhīdào jīngguò le zhème duō nián" },
+                { text: "Nǐ shìfǒu yuànyì jiàn wǒ" }
+            ],
+            "hi-IN": [
+                { text: "Namaste yeh main hoon" },
+                { text: "Main soch raha tha ki itne varshon ke baad" },
+                { text: "Kya aap mujhse milna chahenge" }
+            ]
+        };
+
+        const languageSelect = document.getElementById("language-select");
+        const lyricsContainer = document.getElementById("lyrics");
+        const scoreTitle = document.getElementById("score-title");
+        const scoreDisplay = document.getElementById("score");
+        const startBtn = document.getElementById("start-btn");
+        const stopBtn = document.getElementById("stop-btn");
+
+        languageSelect.addEventListener("change", (event) => {
+            const selectedLang = event.target.value;
+            recognition.lang = selectedLang;
+
+            // Reset score when changing languages
+            correctWordCount = 0;
+            totalWordCount = 0;
+            scoreTitle.style.display = "none";
+            scoreDisplay.innerHTML = "";
+        });
+
+        startBtn.addEventListener("click", () => {
+            recognition.start();
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+        });
+
+        stopBtn.addEventListener("click", () => {
+            recognition.stop();
+            stopBtn.disabled = true;
+            startBtn.disabled = false;
+            showFinalScore();
+        });
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+            highlightWords(transcript);
+        };
+
+        function highlightWords(userInput) {
+            const selectedLang = recognition.lang;
+            let expectedLyrics = lyricsData[selectedLang]
+                .map(line => line.text.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, "")) // Remove punctuation
+                .join(" ");
+
+            const expectedWords = expectedLyrics.split(" ");
+            const userWords = userInput.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, "").split(" "); // Remove punctuation
+
+            correctWordCount = 0;
+            totalWordCount = expectedWords.length;
+
+            let resultHTML = expectedWords.map(word => {
+                if (userWords.includes(word)) {
+                    correctWordCount++;
+                    return `<span class="correct">✅ ${word}</span>`;
+                } else {
+                    return `<span class="incorrect">❌ ${word}</span>`;
+                }
+            }).join(" ");
+
+            lyricsContainer.innerHTML = resultHTML;
+        }
+
+        function showFinalScore() {
+            let percentage = totalWordCount > 0 
+                ? Math.round((correctWordCount / totalWordCount) * 100) 
+                : 0;
+
+            scoreTitle.style.display = "block";
+            scoreDisplay.innerHTML = `🎯 Your Score: ${correctWordCount} / ${totalWordCount} words correct (${percentage}%)`;
+        }
+    </script>
+</body>
+</html>
