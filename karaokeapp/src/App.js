@@ -1,7 +1,8 @@
 import React, { useState } from "react";
+import { Howl } from "howler";
 import './App.css';
 
-// Songs data
+// Songs data (with paths to the audio files)
 const songs = {
   french: {
     title: "La Vie en Rose",
@@ -22,18 +23,21 @@ C'est lui pour moi, moi pour lui dans la vie
 Il me l'a dit, l'a juré pour la vie
 Et dès que je l'aperçois
 Alors je sens en moi
-Mon cœur qui bat`
+Mon cœur qui bat`,
+    audio: "path_to_french_audio.mp3", // Path to audio file
   },
   english: {
     title: "Waka Waka",
     lyrics: `You're a good soldier, choosing your battles
 Pick yourself up and dust yourself off, get back in the saddle
 You're on the front line, everyone's watching
-You know it's serious, we're getting closer, this isn't over`
+You know it's serious, we're getting closer, this isn't over`,
+    audio: "path_to_english_audio.mp3", // Path to audio file
   },
   chinese: {
     title: "茉莉花 (Jasmine Flower)",
-    lyrics: "好一朵美丽的茉莉花... (Good jasmine flower...)"
+    lyrics: "好一朵美丽的茉莉花... (Good jasmine flower...)",
+    audio: "path_to_chinese_audio.mp3", // Path to audio file
   },
   spanish: {
     title: "Despacito",
@@ -44,7 +48,8 @@ Veo que eres malicia con delicadeza
 Pasito a pasito, suave suavecito
 Nos vamos pegando, poquito a poquito (oh oh)
 Y es que esa belleza es un rompecabezas (oh no)
-Pero pa' montarlo aquí tengo la pieza (slow, oh yeah)`
+Pero pa' montarlo aquí tengo la pieza (slow, oh yeah)`,
+    audio: "path_to_spanish_audio.mp3", // Path to audio file
   },
   hindi: {
     title: "Kuch Kuch Hota Hai",
@@ -59,16 +64,41 @@ F: Tum paas aaye.. yoon muskuraaye..
 Tumne naJaane kyaa.. sapne dikhaaye..
 Ab to meraa dil.. jaage na sotha hai
 Kyaa karun haaye.. kuch kuch hotha hai..
-Kyaa karun haaye.. kuch kuch hotha hai..`
-  }
+Kyaa karun haaye.. kuch kuch hotha hai..`,
+    audio: "path_to_hindi_audio.mp3", // Path to audio file
+  },
 };
 
 function App() {
   const [selectedSong, setSelectedSong] = useState(null);
+  const [player, setPlayer] = useState(null); // Howler player
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  // Function to handle song selection
+  // Handle song selection
   const handleSongSelection = (language) => {
-    setSelectedSong(songs[language]);
+    const song = songs[language];
+    setSelectedSong(song);
+
+    // Create a new Howler instance for this song
+    const sound = new Howl({
+      src: [song.audio],
+      html5: true, // For better performance with large audio files
+      onend: () => {
+        setIsPlaying(false); // Reset when audio ends
+      }
+    });
+
+    setPlayer(sound);
+  };
+
+  // Play/Pause audio
+  const togglePlay = () => {
+    if (isPlaying) {
+      player.pause();
+    } else {
+      player.play();
+    }
+    setIsPlaying(!isPlaying);
   };
 
   return (
@@ -90,6 +120,15 @@ function App() {
         <div className="song-lyrics">
           <h2>{selectedSong.title}</h2>
           <pre>{selectedSong.lyrics}</pre>
+        </div>
+      )}
+
+      {selectedSong && (
+        <div className="audio-player">
+          <h3>{selectedSong.title}</h3>
+          <button onClick={togglePlay}>
+            {isPlaying ? "Pause" : "Play"}
+          </button>
         </div>
       )}
     </div>
