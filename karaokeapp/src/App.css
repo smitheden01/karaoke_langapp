@@ -1,8 +1,8 @@
 /* General Styles */
 body {
-  font-family: sans-serif; /* Cool font */
-  background-color: #dae7fb; /* Soft background */
-  color: #333;
+  font-family: 'Avenir'; 
+  background-color: #f7f4d4; 
+  color: #f7f4fd;
   margin: 0;
   padding: 0;
   display: flex;
@@ -12,10 +12,20 @@ body {
   flex-direction: column;
 }
 
+@font-face {
+  font-family: 'Avenir';
+  src: url('./avenir_bold.ttf') format('truetype');
+}
+.title-image {
+  width: 1000px; /* Adjust the width to your desired size */
+  height: auto; /* Keeps the aspect ratio intact */
+  margin: 20px auto; /* Centers the image */
+  display: block; /* Ensures it's treated as a block-level element */
+}
 /* Header */
 h1 {
   font-size: 36px;
-  color: #2e15ae;
+  color: #6fafda;
   text-align: center;
   margin-bottom: 20px;
 }
@@ -27,16 +37,17 @@ h1 {
 }
 
 .song-selection h2 {
-  font-size: 24px;
+  font-size: 30px;
   color: #333;
   margin-bottom: 10px;
 }
 
 .buttons button {
-  background-color: #A2D8FF; /* Light Blue */
+  background-color: #6dfdd1; /* Light Blue */
   border: none;
   padding: 15px 30px;
-  font-size: 18px;
+  font-size: 24px;
+  font-family: 'Avenir';
   border-radius: 30px;
   margin: 5px;
   cursor: pointer;
@@ -54,7 +65,7 @@ h1 {
   text-align: center;
   font-size: 18px;
   line-height: 1.6;
-  background-color: #ffffff;
+  background-color: #fe9fab;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
@@ -115,6 +126,13 @@ h1 {
   transform: scale(1.05);
 }
 
+.parent-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  flex-direction: column;
+}
 /* Score Box */
 .score-box {
   width: 250px;
@@ -124,20 +142,26 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #ffffff;
+  background-color: #ffe0c8;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
+}
+
+.score-box h3 {
+  font-size: 24px;
+  font-family: 'Avenir';
+  color: #4CAF50;
 }
 
 .score {
   font-size: 28px;
+  font-family: 'Avenir';
   font-weight: bold;
   color: #4CAF50;
 }
 
 /* Font Style for Lyrics and Title */
 .song-lyrics h2 {
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-family: 'Avenir';
   color: #021403;
   font-size: 30px;
   margin-bottom: 10px;
@@ -145,14 +169,29 @@ h1 {
 }
 
 .audio-player h3 {
-  font-family: 'Lobster', cursive;
-  color: #333;
+  font-family: 'Avenir';
+  color: #6fafda;
+  font-size: 24px;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+.speech-recognition h3 {
+  font-family: 'Avenir';
+  color: #6fafda;
   font-size: 24px;
   margin-bottom: 10px;
   letter-spacing: 1px;
 }
 
-/* Adjustments for smaller screens */
+.speech-output {
+  font-family: 'Avenir';
+  color: #021403;
+  font-size: 20px;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+
 @media (max-width: 768px) {
   .song-lyrics {
     width: 90%;
@@ -166,4 +205,5 @@ h1 {
   .record-button {
     width: 80%;
   }
+    
 }

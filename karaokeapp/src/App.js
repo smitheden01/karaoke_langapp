@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Howl } from "howler";
 import "./App.css";
+import { Button } from "./components/Button.js"; // Importing the Button component
+
 
 // Web Speech API setup
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -163,18 +165,21 @@ function App() {
 
   return (
     <div className="App">
-      <h1>🎤 Karaoke Language App</h1>
+       <img src="/choruscruise.png" alt="Chorus Cruise" className="title-image" />
 
       <div className="song-selection">
-        <h2>Select a song:</h2>
+        <h2>select a song!</h2>
         <div className="buttons">
-          <button onClick={() => handleSongSelection("spanish")}>La Fuerte (Spanish)</button>
-          <button onClick={() => handleSongSelection("french")}>Ya Habibi (French)</button>
-          <button onClick={() => handleSongSelection("english")}>Balloon (English)</button>
-        </div>
+          {/* Changed button to Button component */}
+          <Button buttonStyle="btn-primary" buttonSize="btn--medium"
+          onClick={() => handleSongSelection("spanish")}
+          >La Fuerte (Spanish)</Button>
+          <Button onClick={() => handleSongSelection("french")}>Ya Habibi (French)</Button>
+          <Button onClick={() => handleSongSelection("english")}>Balloon (English)</Button>
       </div>
 
       {selectedSong && (
+        <div className="parent-container">
         <div className="song-lyrics">
           <h2>{selectedSong.title}</h2>
           <div id="lyrics-container">
@@ -183,13 +188,14 @@ function App() {
             ))}
           </div>
         </div>
+      </div>
       )}
 
       {selectedSong && (
         <div className="audio-player">
-          <button onClick={togglePlay}>
+          <Button onClick={togglePlay}>
             {isPlaying ? "Pause" : "Play"}
-          </button>
+          </Button> {/* Changed button to Button component */}
         </div>
       )}
 
@@ -199,15 +205,18 @@ function App() {
           <p className="speech-output">{recognizedText}</p>
         </div>
       )}
-
       {selectedSong && (
-        <div className="score-box">
-          <h3>🎯 Score:</h3>
-          <p className="score">✅ {correctWordCount} / {totalWordCount} words correct</p>
-        </div>
-      )}
+  <div className="parent-container">
+    <div className="score-box">
+      <h3>🎯 Score:</h3>
+      <p className="score">
+        ✅ {correctWordCount} / {totalWordCount} words correct
+      </p>
     </div>
-  );
+  </div>
+)}
+    </div>
+  </div>);
 }
 
 export default App;
