@@ -6,32 +6,48 @@ import "./App.css";
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 recognition.continuous = true;
-recognition.interimResults = false; // Only final results
-recognition.lang = "es-ES"; // Default language
+recognition.interimResults = true;
 
-// Songs Data (Spanish & Hindi)
+// Function to remove accents
+const removeAccents = (str) => {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Removes accents
+};
+
+// Songs Data (Spanish & French)
 const songs = {
   spanish: {
     title: "La Fuerte (Shakira)",
     lyrics: [
-      { time: 2, text: "Si tú quieres yo me asomo" },
-      { time: 6, text: "Dime dónde, cuándo y cómo" },
-      { time: 10, text: "Si tú quieres yo me asomo" },
-      { time: 14, text: "Dime dónde, cómo" }
+      { time: 2, text: "Olvidarte yo trato, pero a esta loba le da el arrebato" },
+      { time: 6, text: "Yo con él paso el rato y luego a tu nombre solita me mato" },
+      { time: 10, text: "Me siento como leona enjaula, cuesta tanto quedarme calla" },
+      { time: 14, text: "Me tienes con la cabeza raya, con la cabeza raya" }
     ],
-    audio: "/Shakira, Bizarrap - La Fuerte (Audio).mp3",
+    audio: "/ShakiraTrimmed.mp3",
     language: "es-ES"
   },
-  hindi: {
-    title: "Kuch Kuch Hota Hai",
+  french: {
+    title: "Ya Habibi",
     lyrics: [
-      { time: 2, text: "Tum paas aaye" },
-      { time: 6, text: "Yoon muskuraaye" },
-      { time: 10, text: "Tumne na jaane kya" },
-      { time: 14, text: "Sapne dikhaye" }
+      { time: 2, text: "Ya habibi, ya habibi, tu es tombé comme la pluie" },
+      { time: 6, text: "T'as déboulé dans ma petite vie, dans ma ville comme un ovni" },
+      { time: 10, text: "Puis t'es parti comme le jour qui laisse place à la nuit" },
+      { time: 14, text: "Et quand t'es parti, ton absence a laissé place à l'ennui" }
     ],
-    audio: "/KuchKuchHotaHai.mp3",
-    language: "hi-IN"
+    audio: "/YaHabibiTrimmed.mp3",
+    language: "fr-FR"
+  },
+  english: {
+    title: "Balloon",
+    lyrics: [
+      { time: 2, text: "Yeah, we ain't talking to your dumbass" },
+      { time: 6, text: "You could be a millionaire and still be a bum ass" },
+      { time: 10, text: "Boy, I been on a dream, I been on the-" },
+      { time: 14, text: "(Don't stop, do-don't stop) okay, look" },
+      { time: 18, text: "Why I work so hard? My soul profit" }
+    ],
+    audio: "/BalloonTrimmed.mp3",
+    language: "en-US"
   }
 };
 
@@ -39,21 +55,20 @@ function App() {
   const [selectedSong, setSelectedSong] = useState(null);
   const [player, setPlayer] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
   const [recognizedText, setRecognizedText] = useState("");
+  const [spokenWords, setSpokenWords] = useState([]); // Stores all recognized words
+  const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
   const [highlightedLyrics, setHighlightedLyrics] = useState([]);
   const [correctWordCount, setCorrectWordCount] = useState(0);
   const [totalWordCount, setTotalWordCount] = useState(0);
 
-  // Auto-update lyrics every 100ms while the song plays
   useEffect(() => {
     if (!selectedSong || !isPlaying || !player) return;
 
     const interval = setInterval(() => {
       if (player.playing()) {
         let currentTime = player.seek();
-        let lyrics = selectedSong.lyrics;
-        let newIndex = lyrics.findIndex(line => currentTime >= line.time);
+        let newIndex = selectedSong.lyrics.findIndex(line => currentTime >= line.time);
 
         if (newIndex !== -1 && newIndex !== currentLyricIndex) {
           setCurrentLyricIndex(newIndex);
@@ -64,12 +79,12 @@ function App() {
     return () => clearInterval(interval);
   }, [selectedSong, isPlaying, player, currentLyricIndex]);
 
-  // Handle song selection
   const handleSongSelection = (language) => {
     const song = songs[language];
     setSelectedSong(song);
     setCurrentLyricIndex(0);
     setHighlightedLyrics(song.lyrics.map(line => ({ text: line.text, status: "neutral" })));
+    setSpokenWords([]); // Reset spoken words
 
     recognition.lang = song.language;
     console.log(`🌍 Speech recognition set to: ${song.language}`);
@@ -86,7 +101,6 @@ function App() {
     setPlayer(sound);
   };
 
-  // Play/Pause music & speech recognition
   const togglePlay = () => {
     if (isPlaying) {
       player.pause();
@@ -98,13 +112,15 @@ function App() {
     setIsPlaying(!isPlaying);
   };
 
-  // Handle speech recognition result
   useEffect(() => {
     recognition.onresult = (event) => {
       const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
       console.log("🎤 Recognized Speech:", transcript);
+
+      const cleanedTranscript = removeAccents(transcript);
+      setSpokenWords(prevWords => [...prevWords, ...cleanedTranscript.split(" ")]);
       setRecognizedText(transcript);
-      compareLyrics(transcript);
+      compareLyrics([...spokenWords, ...cleanedTranscript.split(" ")]);
     };
 
     recognition.onerror = (event) => {
@@ -115,37 +131,34 @@ function App() {
       console.log("⚠️ Speech Recognition Stopped. Restarting...");
       if (isPlaying) recognition.start();
     };
-  }, [isPlaying]);
+  }, [isPlaying, spokenWords]);
 
-  // Compare recognized words to expected lyrics
-  const compareLyrics = (userInput) => {
+  const compareLyrics = (spokenWords) => {
     if (!selectedSong) return;
-
-    let expectedText = selectedSong.lyrics[currentLyricIndex]?.text.toLowerCase();
-    if (!expectedText) return;
-
-    const expectedWords = expectedText.split(" ");
-    const userWords = userInput.toLowerCase().split(" ");
-
+  
     let correctCount = 0;
-    const newHighlightedLyrics = selectedSong.lyrics.map((line, index) => {
-      if (index === currentLyricIndex) {
-        const words = line.text.split(" ").map(word => {
-          const cleanWord = word.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, "");
-          return userWords.includes(cleanWord)
-            ? `<span class="correct">✅ ${word}</span>`
-            : `<span class="incorrect">❌ ${word}</span>`;
-        }).join(" ");
-
-        correctCount = words.match(/✅/g)?.length || 0;
-        return { text: words, status: "checked" };
-      }
-      return { text: line.text, status: "neutral" };
+    let totalWords = 0;
+  
+    const newHighlightedLyrics = selectedSong.lyrics.map((line) => {
+      const expectedText = removeAccents(line.text.toLowerCase());
+      const expectedWords = expectedText.split(" ");
+      totalWords += expectedWords.length;
+  
+      // Compare all spoken words against this line
+      const words = expectedWords.map(word => {
+        const cleanWord = word.replace(/[^a-zA-Z0-9\s]/g, "");
+        return spokenWords.includes(cleanWord)
+          ? `<span class="correct">✅ ${word}</span>`
+          : `<span class="incorrect">❌ ${word}</span>`;
+      }).join(" ");
+  
+      correctCount += (words.match(/✅/g) || []).length;
+      return { text: words, status: "checked" };
     });
 
     setHighlightedLyrics(newHighlightedLyrics);
     setCorrectWordCount(correctCount);
-    setTotalWordCount(expectedWords.length);
+    setTotalWordCount(totalWords);
   };
 
   return (
@@ -156,7 +169,8 @@ function App() {
         <h2>Select a song:</h2>
         <div className="buttons">
           <button onClick={() => handleSongSelection("spanish")}>La Fuerte (Spanish)</button>
-          <button onClick={() => handleSongSelection("hindi")}>Kuch Kuch Hota Hai (Hindi)</button>
+          <button onClick={() => handleSongSelection("french")}>Ya Habibi (French)</button>
+          <button onClick={() => handleSongSelection("english")}>Balloon (English)</button>
         </div>
       </div>
 
@@ -165,7 +179,7 @@ function App() {
           <h2>{selectedSong.title}</h2>
           <div id="lyrics-container">
             {highlightedLyrics.map((line, index) => (
-              <p key={index} className={index === currentLyricIndex ? "highlight" : ""} dangerouslySetInnerHTML={{ __html: line.text }} />
+              <p key={index} className={index <= currentLyricIndex ? "highlight" : ""} dangerouslySetInnerHTML={{ __html: line.text }} />
             ))}
           </div>
         </div>
